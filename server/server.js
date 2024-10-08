@@ -9,7 +9,7 @@ const protectedRoutes = require('./src/routes/protected');
 require('dotenv').config();
 
 const PORT = process.env.PORT || 5000;
-const allowedOrigins = ['process.env.DATABASE_URL'];
+const allowedOrigins = ['http://localhost:5173'];
 
 app.use(
     cors({
@@ -45,5 +45,3 @@ app.get('/', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
-
-app.use('/api/protected', protectedRoutes);
