@@ -1,7 +1,7 @@
 const express = require('express');
-const cors = require('cors'); // Import cors
-const helmet = require('helmet'); // Import helmet
-const morgan = require('morgan'); // Import morgan
+const cors = require('cors');
+const helmet = require('helmet');
+const morgan = require('morgan');
 const app = express();
 const { sequelize } = require('./models');
 const authRoutes = require('./src/routes/auth');
@@ -9,12 +9,11 @@ const protectedRoutes = require('./src/routes/protected');
 require('dotenv').config();
 
 const PORT = process.env.PORT || 5000;
-const allowedOrigins = ['http://localhost:5173'];
+const allowedOrigins = ['process.env.DATABASE_URL'];
 
 app.use(
     cors({
         origin: function (origin, callback) {
-            // Allow requests with no origin (e.g., mobile apps, curl requests)
             if (!origin) return callback(null, true);
             if (allowedOrigins.indexOf(origin) === -1) {
                 const msg =
@@ -26,7 +25,7 @@ app.use(
         credentials: true,
     })
 );
-app.use(helmet()); // Use helmet middleware for security
+app.use(helmet());
 app.use(morgan('dev'));
 app.use(express.json());
 

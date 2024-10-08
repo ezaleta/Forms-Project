@@ -1,4 +1,3 @@
-// client/src/pages/LoginPage.jsx
 import React, { useState } from 'react';
 import {
     Box,
