@@ -8,11 +8,15 @@ import {
     Alert,
     AlertIcon,
     Stack,
-    Input,
     Textarea,
     FormControl,
     FormLabel,
     VStack,
+    Avatar,
+    HStack,
+    Tag,
+    Wrap,
+    WrapItem,
 } from '@chakra-ui/react';
 import { useParams } from 'react-router-dom';
 import api from '../services/api';
@@ -62,6 +66,7 @@ function TemplatePage() {
                 console.error('Error fetching likes info:', error);
             }
         };
+
         fetchTemplate();
         fetchComments();
         fetchLikesInfo();
@@ -113,8 +118,23 @@ function TemplatePage() {
     return (
         <Box p={5}>
             <Heading mb={4}>{template.title}</Heading>
-            <Text mb={4}>{template.description}</Text>
-            <Button colorScheme="teal" onClick={handleToggleLike} mb={4}>
+            <Text mb={2}>{template.description}</Text>
+
+            {template.Tags && template.Tags.length > 0 && (
+                <Wrap mb={4}>
+                    {template.Tags.map(tag => (
+                        <WrapItem key={tag.id}>
+                            <Tag colorScheme="teal">{tag.name}</Tag>
+                        </WrapItem>
+                    ))}
+                </Wrap>
+            )}
+
+            <Button
+                colorScheme={hasLiked ? 'red' : 'teal'}
+                onClick={handleToggleLike}
+                mb={4}
+            >
                 {hasLiked ? `Unlike (${likesCount})` : `Like (${likesCount})`}
             </Button>
 
@@ -129,15 +149,21 @@ function TemplatePage() {
                         borderWidth="1px"
                         borderRadius="md"
                     >
-                        <Text fontWeight="bold">
-                            {comment.User.firstName} {comment.User.lastName}
-                        </Text>
+                        <HStack mb={2}>
+                            <Avatar
+                                size="sm"
+                                name={`${comment.User.firstName} ${comment.User.lastName}`}
+                            />
+                            <Text fontWeight="bold">
+                                {comment.User.firstName} {comment.User.lastName}
+                            </Text>
+                        </HStack>
                         <Text>{comment.content}</Text>
                     </Box>
                 ))}
             </Stack>
 
-            <VStack spacing={4} mt={4}>
+            <VStack spacing={4} mt={4} align="stretch">
                 <FormControl>
                     <FormLabel>Add a comment</FormLabel>
                     <Textarea
@@ -146,7 +172,11 @@ function TemplatePage() {
                         placeholder="Enter your comment"
                     />
                 </FormControl>
-                <Button onClick={handleAddComment} colorScheme="blue">
+                <Button
+                    onClick={handleAddComment}
+                    colorScheme="blue"
+                    alignSelf="flex-end"
+                >
                     Submit Comment
                 </Button>
             </VStack>
