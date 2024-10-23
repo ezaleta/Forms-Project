@@ -9,6 +9,7 @@ const protectedRoutes = require('./src/routes/protected');
 const templateRoutes = require('./src/routes/templates');
 const questionRoutes = require('./src/routes/questions');
 const formRoutes = require('./src/routes/forms');
+const userRoutes = require('./src/routes/users');
 require('dotenv').config();
 
 const PORT = process.env.PORT || 5000;
@@ -40,6 +41,7 @@ app.use('/api/protected', protectedRoutes);
 app.use('/api/templates', templateRoutes);
 app.use('/api/questions', questionRoutes);
 app.use('/api/forms', formRoutes);
+app.use('/api/users', userRoutes);
 
 app.get('/', async (req, res) => {
     try {

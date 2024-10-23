@@ -87,6 +87,25 @@ router.get('/:id', auth, async (req, res) => {
     }
 });
 
+router.get('/:id/hasLiked', auth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user.id;
+
+        const like = await Like.findOne({
+            where: {
+                templateId: id,
+                userId: userId,
+            },
+        });
+
+        res.json({ hasLiked: !!like });
+    } catch (error) {
+        console.error('Error checking like status:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
 router.put('/:id', auth, async (req, res) => {
     try {
         const template = await Template.findByPk(req.params.id);
@@ -114,7 +133,7 @@ router.put('/:id', auth, async (req, res) => {
 
         res.json(template);
     } catch (error) {
-        console.error(error);
+        console.error('Error creating template:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });
@@ -130,9 +149,9 @@ router.delete('/:id', auth, async (req, res) => {
         }
 
         await template.destroy();
-        res.json({ message: 'Template deleted' });
+        res.json({ message: 'Template deleted successfully' });
     } catch (error) {
-        console.error(error);
+        console.error('Error deleting template:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });
@@ -215,6 +234,54 @@ router.get('/:id/likes', async (req, res) => {
         res.json({ likesCount });
     } catch (error) {
         console.error('Error fetching likes count:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+router.put('/:templateId/comments/:commentId', auth, async (req, res) => {
+    try {
+        const { templateId, commentId } = req.params;
+        const { content } = req.body;
+
+        const comment = await Comment.findOne({
+            where: { id: commentId, templateId, userId: req.user.id },
+        });
+
+        if (!comment) {
+            return res
+                .status(404)
+                .json({ message: 'Comment not found or unauthorized' });
+        }
+
+        comment.content = content;
+        await comment.save();
+
+        res.json(comment);
+    } catch (error) {
+        console.error('Error updating comment:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+router.delete('/:templateId/comments/:commentId', auth, async (req, res) => {
+    try {
+        const { templateId, commentId } = req.params;
+
+        const comment = await Comment.findOne({
+            where: { id: commentId, templateId, userId: req.user.id },
+        });
+
+        if (!comment) {
+            return res
+                .status(404)
+                .json({ message: 'Comment not found or unauthorized' });
+        }
+
+        await comment.destroy();
+
+        res.json({ message: 'Comment deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting comment:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });

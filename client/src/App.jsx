@@ -10,6 +10,7 @@ import FillTemplatePage from './pages/FillTemplatePage';
 import TemplatePage from './pages/TemplatePage';
 import PrivateRoute from './components/PrivateRoute';
 import Sidebar from './components/Sidebar';
+import ProfilePage from './pages/ProfilePage';
 
 function App() {
     return (
@@ -45,6 +46,14 @@ function App() {
                     <Route path="/templates/:id" element={<TemplatePage />} />
                     <Route path="/register" element={<RegisterPage />} />
                     <Route path="/login" element={<LoginPage />} />
+                    <Route
+                        path="/profile"
+                        element={
+                            <PrivateRoute>
+                                <ProfilePage />
+                            </PrivateRoute>
+                        }
+                    />
                 </Routes>
             </Box>
         </Box>

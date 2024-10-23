@@ -9,8 +9,9 @@ import {
     AlertIcon,
     Stack,
     Link,
+    useToast,
 } from '@chakra-ui/react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 
 function DashboardPage() {
@@ -20,6 +21,7 @@ function DashboardPage() {
     const [forms, setForms] = useState([]);
     const [loadingForms, setLoadingForms] = useState(true);
     const [formsError, setFormsError] = useState(null);
+    const toast = useToast();
 
     useEffect(() => {
         const fetchTemplates = async () => {
@@ -49,6 +51,32 @@ function DashboardPage() {
         fetchTemplates();
         fetchForms();
     }, []);
+
+    const deleteTemplate = async templateId => {
+        try {
+            await api.delete(`/api/templates/${templateId}`);
+            // Update the state to remove the deleted template
+            setTemplates(
+                templates.filter(template => template.id !== templateId)
+            );
+            toast({
+                title: 'Template deleted.',
+                description: 'Your template has been deleted successfully.',
+                status: 'success',
+                duration: 5000,
+                isClosable: true,
+            });
+        } catch (error) {
+            console.error('Error deleting template:', error);
+            toast({
+                title: 'Error deleting template.',
+                description: 'An error occurred while deleting the template.',
+                status: 'error',
+                duration: 5000,
+                isClosable: true,
+            });
+        }
+    };
 
     if (loadingTemplates || loadingForms) {
         return (
@@ -99,8 +127,17 @@ function DashboardPage() {
                                     size="sm"
                                     mt={4}
                                     colorScheme="teal"
+                                    mr={2}
                                 >
                                     Edit Template
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    mt={4}
+                                    colorScheme="red"
+                                    onClick={() => deleteTemplate(template.id)}
+                                >
+                                    Delete Template
                                 </Button>
                             </Box>
                         ))}

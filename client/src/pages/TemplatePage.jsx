@@ -14,11 +14,11 @@ import {
     VStack,
     Avatar,
     HStack,
-    Tag,
-    Wrap,
-    WrapItem,
+    IconButton,
+    useToast,
 } from '@chakra-ui/react';
 import { useParams } from 'react-router-dom';
+import { EditIcon, DeleteIcon } from '@chakra-ui/icons';
 import api from '../services/api';
 
 function TemplatePage() {
@@ -30,50 +30,49 @@ function TemplatePage() {
     const [newComment, setNewComment] = useState('');
     const [likesCount, setLikesCount] = useState(0);
     const [hasLiked, setHasLiked] = useState(false);
+    const [userId, setUserId] = useState(null);
+    const [editingCommentId, setEditingCommentId] = useState(null);
+    const [editingCommentContent, setEditingCommentContent] = useState('');
+    const toast = useToast();
 
     useEffect(() => {
-        const fetchTemplate = async () => {
+        const fetchTemplateData = async () => {
             try {
-                const res = await api.get(`/api/templates/${id}`);
-                setTemplate(res.data);
+                const templateRes = await api.get(`/api/templates/${id}`);
+                setTemplate(templateRes.data);
+
+                const commentsRes = await api.get(
+                    `/api/templates/${id}/comments`
+                );
+                setComments(commentsRes.data);
+
+                const likesRes = await api.get(`/api/templates/${id}/likes`);
+                setLikesCount(likesRes.data.likesCount);
+
+                try {
+                    const hasLikedRes = await api.get(
+                        `/api/templates/${id}/hasLiked`
+                    );
+                    setHasLiked(hasLikedRes.data.hasLiked);
+                } catch (err) {
+                    console.error('Error checking like status:', err);
+                }
+
+                const userRes = await api.get('/api/users/me');
+                setUserId(userRes.data.id);
             } catch (error) {
-                console.error('Error fetching template:', error);
-                setError('Failed to load template');
+                console.error('Error fetching data:', error);
+                setError('Failed to load template data');
             } finally {
                 setLoading(false);
             }
         };
 
-        const fetchComments = async () => {
-            try {
-                const res = await api.get(`/api/templates/${id}/comments`);
-                setComments(res.data);
-            } catch (error) {
-                console.error('Error fetching comments:', error);
-            }
-        };
-
-        const fetchLikesInfo = async () => {
-            try {
-                const res = await api.get(`/api/templates/${id}/likes`);
-                setLikesCount(res.data.likesCount);
-
-                const userLikeRes = await api.get(
-                    `/api/templates/${id}/hasLiked`
-                );
-                setHasLiked(userLikeRes.data.hasLiked);
-            } catch (error) {
-                console.error('Error fetching likes info:', error);
-            }
-        };
-
-        fetchTemplate();
-        fetchComments();
-        fetchLikesInfo();
+        fetchTemplateData();
     }, [id]);
 
     const handleAddComment = async () => {
-        if (!newComment) return;
+        if (!newComment.trim()) return;
 
         try {
             const res = await api.post(`/api/templates/${id}/comments`, {
@@ -81,9 +80,84 @@ function TemplatePage() {
             });
             setComments([...comments, res.data]);
             setNewComment('');
+            toast({
+                title: 'Comment added.',
+                status: 'success',
+                duration: 3000,
+                isClosable: true,
+            });
         } catch (error) {
             console.error('Error adding comment:', error);
+            toast({
+                title: 'Error adding comment.',
+                status: 'error',
+                duration: 3000,
+                isClosable: true,
+            });
         }
+    };
+
+    const deleteComment = async commentId => {
+        try {
+            await api.delete(`/api/templates/${id}/comments/${commentId}`);
+            setComments(comments.filter(comment => comment.id !== commentId));
+            toast({
+                title: 'Comment deleted.',
+                status: 'success',
+                duration: 3000,
+                isClosable: true,
+            });
+        } catch (error) {
+            console.error('Error deleting comment:', error);
+            toast({
+                title: 'Error deleting comment.',
+                status: 'error',
+                duration: 3000,
+                isClosable: true,
+            });
+        }
+    };
+
+    const handleEditComment = (commentId, content) => {
+        setEditingCommentId(commentId);
+        setEditingCommentContent(content);
+    };
+
+    const handleUpdateComment = async () => {
+        try {
+            const res = await api.put(
+                `/api/templates/${id}/comments/${editingCommentId}`,
+                {
+                    content: editingCommentContent,
+                }
+            );
+            setComments(
+                comments.map(comment =>
+                    comment.id === editingCommentId ? res.data : comment
+                )
+            );
+            setEditingCommentId(null);
+            setEditingCommentContent('');
+            toast({
+                title: 'Comment updated.',
+                status: 'success',
+                duration: 3000,
+                isClosable: true,
+            });
+        } catch (error) {
+            console.error('Error updating comment:', error);
+            toast({
+                title: 'Error updating comment.',
+                status: 'error',
+                duration: 3000,
+                isClosable: true,
+            });
+        }
+    };
+
+    const handleCancelEdit = () => {
+        setEditingCommentId(null);
+        setEditingCommentContent('');
     };
 
     const handleToggleLike = async () => {
@@ -95,6 +169,12 @@ function TemplatePage() {
             );
         } catch (error) {
             console.error('Error toggling like:', error);
+            toast({
+                title: 'Error toggling like.',
+                status: 'error',
+                duration: 3000,
+                isClosable: true,
+            });
         }
     };
 
@@ -118,18 +198,7 @@ function TemplatePage() {
     return (
         <Box p={5}>
             <Heading mb={4}>{template.title}</Heading>
-            <Text mb={2}>{template.description}</Text>
-
-            {template.Tags && template.Tags.length > 0 && (
-                <Wrap mb={4}>
-                    {template.Tags.map(tag => (
-                        <WrapItem key={tag.id}>
-                            <Tag colorScheme="teal">{tag.name}</Tag>
-                        </WrapItem>
-                    ))}
-                </Wrap>
-            )}
-
+            <Text mb={4}>{template.description}</Text>
             <Button
                 colorScheme={hasLiked ? 'red' : 'teal'}
                 onClick={handleToggleLike}
@@ -149,16 +218,68 @@ function TemplatePage() {
                         borderWidth="1px"
                         borderRadius="md"
                     >
-                        <HStack mb={2}>
-                            <Avatar
-                                size="sm"
-                                name={`${comment.User.firstName} ${comment.User.lastName}`}
-                            />
-                            <Text fontWeight="bold">
-                                {comment.User.firstName} {comment.User.lastName}
-                            </Text>
+                        <HStack justifyContent="space-between">
+                            <HStack>
+                                <Avatar
+                                    size="sm"
+                                    name={`${comment.User.firstName} ${comment.User.lastName}`}
+                                />
+                                <Text fontWeight="bold">
+                                    {comment.User.firstName}{' '}
+                                    {comment.User.lastName}
+                                </Text>
+                            </HStack>
+                            {comment.userId === userId && (
+                                <HStack spacing={2}>
+                                    <IconButton
+                                        size="sm"
+                                        icon={<EditIcon />}
+                                        onClick={() =>
+                                            handleEditComment(
+                                                comment.id,
+                                                comment.content
+                                            )
+                                        }
+                                        aria-label="Edit Comment"
+                                    />
+                                    <IconButton
+                                        size="sm"
+                                        icon={<DeleteIcon />}
+                                        onClick={() =>
+                                            deleteComment(comment.id)
+                                        }
+                                        aria-label="Delete Comment"
+                                    />
+                                </HStack>
+                            )}
                         </HStack>
-                        <Text>{comment.content}</Text>
+                        {editingCommentId === comment.id ? (
+                            <VStack mt={2} align="stretch">
+                                <Textarea
+                                    value={editingCommentContent}
+                                    onChange={e =>
+                                        setEditingCommentContent(e.target.value)
+                                    }
+                                />
+                                <HStack>
+                                    <Button
+                                        size="sm"
+                                        colorScheme="teal"
+                                        onClick={handleUpdateComment}
+                                    >
+                                        Save
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        onClick={handleCancelEdit}
+                                    >
+                                        Cancel
+                                    </Button>
+                                </HStack>
+                            </VStack>
+                        ) : (
+                            <Text mt={2}>{comment.content}</Text>
+                        )}
                     </Box>
                 ))}
             </Stack>

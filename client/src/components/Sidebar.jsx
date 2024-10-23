@@ -1,5 +1,3 @@
-// client/src/components/Sidebar.jsx
-
 import React from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import {
@@ -30,7 +28,6 @@ function Sidebar() {
 
     return (
         <Box minH="100vh" bg={useColorModeValue('gray.100', 'gray.900')}>
-            {/* Mobile hamburger menu button */}
             <Box display={{ base: 'block', md: 'none' }} p={4}>
                 <IconButton
                     onClick={isOpen ? onClose : onOpen}
@@ -55,7 +52,6 @@ function Sidebar() {
             >
                 {isOpen || window.innerWidth >= 768 ? (
                     <>
-                        {/* Close button for mobile */}
                         {isOpen && (
                             <Box
                                 display={{ base: 'block', md: 'none' }}
@@ -65,7 +61,6 @@ function Sidebar() {
                                 <CloseButton onClick={onClose} />
                             </Box>
                         )}
-                        {/* Sidebar content */}
                         <Box>
                             <Heading
                                 as="h3"
