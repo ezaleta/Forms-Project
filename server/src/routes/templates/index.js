@@ -1,7 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
-const { Template, Question, User, Tag } = require('../../../models');
+const {
+    Template,
+    Question,
+    User,
+    Tag,
+    Comment,
+    Like,
+} = require('../../../models');
+const { Op } = require('sequelize');
 const auth = require('../../middleware/auth');
 
 router.post(
@@ -36,6 +44,20 @@ router.post(
     }
 );
 
+router.get('/myTemplates', auth, async (req, res) => {
+    try {
+        console.log('Authenticated user:', req.user);
+        const templates = await Template.findAll({
+            where: { authorId: req.user.id },
+            include: [{ model: Tag }],
+        });
+        res.json(templates);
+    } catch (error) {
+        console.error('Error fetching templates:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
 router.get('/', auth, async (req, res) => {
     try {
         const templates = await Template.findAll({
@@ -59,32 +81,6 @@ router.get('/:id', auth, async (req, res) => {
         if (!template)
             return res.status(404).json({ message: 'Template not found' });
         res.json(template);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
-    }
-});
-
-router.get('/mine', auth, async (req, res) => {
-    try {
-        const templates = await Template.findAll({
-            where: { authorId: req.user.id },
-            include: [{ model: Tag }],
-        });
-        res.json(templates);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
-    }
-});
-
-router.get('/mine', auth, async (req, res) => {
-    try {
-        const forms = await Form.findAll({
-            where: { userId: req.user.id },
-            include: [{ model: Template }],
-        });
-        res.json(forms);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
@@ -137,6 +133,88 @@ router.delete('/:id', auth, async (req, res) => {
         res.json({ message: 'Template deleted' });
     } catch (error) {
         console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+router.post('/:id/comments', auth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { content } = req.body;
+
+        const template = await Template.findByPk(id);
+        if (!template) {
+            return res.status(404).json({ message: 'Template not found' });
+        }
+
+        const comment = await Comment.create({
+            content,
+            templateId: id,
+            userId: req.user.id,
+        });
+
+        res.status(201).json(comment);
+    } catch (error) {
+        console.error('Error adding comment:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+router.get('/:id/comments', auth, async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const comments = await Comment.findAll({
+            where: { templateId: id },
+            include: [{ model: User, attributes: ['firstName', 'lastName'] }],
+            order: [['createdAt', 'ASC']],
+        });
+
+        res.json(comments);
+    } catch (error) {
+        console.error('Error fetching comments:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+router.post('/:id/like', auth, async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const existingLike = await Like.findOne({
+            where: { templateId: id, userId: req.user.id },
+        });
+
+        if (existingLike) {
+            await existingLike.destroy();
+            return res
+                .status(200)
+                .json({ message: 'Template unliked successfully' });
+        }
+
+        await Like.create({
+            templateId: id,
+            userId: req.user.id,
+        });
+
+        res.status(201).json({ message: 'Template liked successfully' });
+    } catch (error) {
+        console.error('Error toggling like:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+router.get('/:id/likes', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const likesCount = await Like.count({
+            where: { templateId: id },
+        });
+
+        res.json({ likesCount });
+    } catch (error) {
+        console.error('Error fetching likes count:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });

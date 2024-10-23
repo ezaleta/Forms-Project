@@ -6,6 +6,7 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import CreateTemplatePage from './pages/CreateTemplatePage';
 import FillTemplatePage from './pages/FillTemplatePage';
+import TemplatePage from './pages/TemplatePage';
 import PrivateRoute from './components/PrivateRoute';
 import Navbar from './components/Navbar';
 
@@ -39,6 +40,7 @@ function App() {
                         </PrivateRoute>
                     }
                 />
+                <Route path="/templates/:id" element={<TemplatePage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/login" element={<LoginPage />} />
             </Routes>

@@ -9,7 +9,7 @@ import {
     VStack,
     Text,
 } from '@chakra-ui/react';
-import axios from 'axios';
+import api from '../services/api';
 import { useNavigate } from 'react-router-dom';
 
 function LoginPage() {
@@ -26,7 +26,7 @@ function LoginPage() {
     const handleSubmit = async e => {
         e.preventDefault();
         try {
-            const res = await axios.post(
+            const res = await api.post(
                 `${import.meta.env.VITE_API_URL}/api/auth/login`,
                 formData
             );

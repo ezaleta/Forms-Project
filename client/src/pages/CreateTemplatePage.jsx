@@ -14,6 +14,7 @@ import {
     Tag,
     TagLabel,
     TagCloseButton,
+    FormErrorMessage,
 } from '@chakra-ui/react';
 import api from '../services/api';
 import { useNavigate } from 'react-router-dom';
@@ -35,6 +36,21 @@ function CreateTemplatePage() {
         setTemplateData({ ...templateData, [e.target.name]: e.target.value });
     };
 
+    const handleSubmit = async e => {
+        e.preventDefault();
+        const validationErrors = validate();
+        if (Object.keys(validationErrors).length > 0) {
+            setErrors(validationErrors);
+            return;
+        }
+        try {
+            const res = await api.post('/api/templates', templateData);
+            navigate(`/templates/${res.data.id}`);
+        } catch (err) {
+            setError(err.response.data.message || 'An error occurred');
+        }
+    };
+
     const handleTagAdd = () => {
         if (tagInput && !templateData.tags.includes(tagInput)) {
             setTemplateData({
@@ -52,21 +68,6 @@ function CreateTemplatePage() {
         });
     };
 
-    const handleSubmit = async e => {
-        e.preventDefault();
-        const validationErrors = validate();
-        if (Object.keys(validationErrors).length > 0) {
-            setErrors(validationErrors);
-            return;
-        }
-        try {
-            const res = await api.post('/api/templates', templateData);
-            navigate(`/templates/${res.data.id}`);
-        } catch (err) {
-            setError(err.response.data.message || 'An error occurred');
-        }
-    };
-
     const [errors, setErrors] = useState({});
 
     const validate = () => {
@@ -81,18 +82,56 @@ function CreateTemplatePage() {
         <Box p={5}>
             <Heading>Create Template</Heading>
             <form onSubmit={handleSubmit}>
-                <FormControl isInvalid={errors.title}>
-                    <FormLabel>Title</FormLabel>
-                    <Input
-                        name="title"
-                        value={templateData.title}
-                        onChange={handleChange}
-                    />
-                    <FormErrorMessage>{errors.title}</FormErrorMessage>
-                </FormControl>
-                <Button mt={4} colorScheme="teal" type="submit">
-                    Save Template
-                </Button>
+                <VStack spacing={4} mt={4}>
+                    <FormControl isInvalid={errors.title}>
+                        <FormLabel>Title</FormLabel>
+                        <Input
+                            name="title"
+                            value={templateData.title}
+                            onChange={handleChange}
+                            placeholder="Enter the template title"
+                        />
+                        <FormErrorMessage>{errors.title}</FormErrorMessage>
+                    </FormControl>
+                    <FormControl isInvalid={errors.description}>
+                        <FormLabel>Description</FormLabel>
+                        <Textarea
+                            name="description"
+                            value={templateData.description}
+                            onChange={handleChange}
+                            placeholder="Enter the template description"
+                        />
+                        <FormErrorMessage>
+                            {errors.description}
+                        </FormErrorMessage>
+                    </FormControl>
+                    <FormControl isInvalid={errors.topic}>
+                        <FormLabel>Topic</FormLabel>
+                        <Input
+                            name="topic"
+                            value={templateData.topic}
+                            onChange={handleChange}
+                            placeholder="Enter the template topic"
+                        />
+                        <FormErrorMessage>{errors.topic}</FormErrorMessage>
+                    </FormControl>
+                    <FormControl>
+                        <FormLabel>Make this template public</FormLabel>
+                        <Switch
+                            name="isPublic"
+                            isChecked={templateData.isPublic}
+                            onChange={e =>
+                                setTemplateData({
+                                    ...templateData,
+                                    isPublic: e.target.checked,
+                                })
+                            }
+                        />
+                    </FormControl>
+                    <Button type="submit" colorScheme="teal" width="full">
+                        Save Template
+                    </Button>
+                </VStack>
             </form>
         </Box>
     );

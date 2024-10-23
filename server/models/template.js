@@ -13,6 +13,8 @@ module.exports = (sequelize, DataTypes) => {
                 through: 'TemplateTags',
                 foreignKey: 'templateId',
             });
+            Template.hasMany(models.Comment, { foreignKey: 'templateId' });
+            Template.hasMany(models.Like, { foreignKey: 'templateId' });
         }
     }
     Template.init(
