@@ -71,7 +71,7 @@ function Sidebar() {
                                     'teal.300'
                                 )}
                             >
-                                MyApp
+                                FormsApp
                             </Heading>
                         </Box>
                         <VStack align="stretch" spacing={4} mt={4}>

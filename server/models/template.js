@@ -7,7 +7,10 @@ module.exports = (sequelize, DataTypes) => {
                 as: 'author',
                 foreignKey: 'authorId',
             });
-            Template.hasMany(models.Question, { foreignKey: 'templateId' });
+            Template.hasMany(models.Question, {
+                foreignKey: 'templateId',
+                onDelete: 'CASCADE',
+            });
             Template.hasMany(models.Form, { foreignKey: 'templateId' });
             Template.belongsToMany(models.Tag, {
                 through: 'TemplateTags',
@@ -15,6 +18,7 @@ module.exports = (sequelize, DataTypes) => {
             });
             Template.hasMany(models.Comment, { foreignKey: 'templateId' });
             Template.hasMany(models.Like, { foreignKey: 'templateId' });
+            Template.hasMany(models.Form, { foreignKey: 'templateId' });
         }
     }
     Template.init(

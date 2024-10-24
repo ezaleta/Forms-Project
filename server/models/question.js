@@ -3,18 +3,26 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
     class Question extends Model {
         static associate(models) {
-            Question.belongsTo(models.Template, { foreignKey: 'templateId' });
-            Question.hasMany(models.Answer, { foreignKey: 'questionId' });
+            Question.belongsTo(models.Template, {
+                foreignKey: 'templateId',
+                onDelete: 'CASCADE',
+            });
+            Question.hasMany(models.FormAnswer, {
+                foreignKey: 'questionId',
+                onDelete: 'CASCADE',
+            });
         }
     }
     Question.init(
         {
-            title: DataTypes.STRING,
-            description: DataTypes.STRING,
+            templateId: {
+                type: DataTypes.INTEGER,
+                allowNull: false,
+            },
+            text: DataTypes.STRING,
             type: DataTypes.STRING,
-            isInResultsTable: DataTypes.BOOLEAN,
-            order: DataTypes.INTEGER,
-            templateId: DataTypes.INTEGER,
+            isRequired: DataTypes.BOOLEAN,
+            options: DataTypes.TEXT,
         },
         {
             sequelize,

@@ -27,7 +27,8 @@ router.post(
         }
 
         try {
-            const { title, description, topic, isPublic, tags } = req.body;
+            const { title, description, topic, isPublic, questions, tag } =
+                req.body;
             const template = await Template.create({
                 title,
                 description,
@@ -36,9 +37,18 @@ router.post(
                 authorId: req.user.id,
             });
 
+            if (questions && questions.length > 0) {
+                const questionData = questions.map(q => ({
+                    ...q,
+                    templateId: template.id,
+                }));
+
+                await Question.bulkCreate(questionData);
+            }
+
             res.status(201).json(template);
         } catch (error) {
-            console.error(error);
+            console.error('Error creating template:', error);
             res.status(500).json({ message: 'Server error' });
         }
     }
@@ -75,14 +85,30 @@ router.get('/', auth, async (req, res) => {
 
 router.get('/:id', auth, async (req, res) => {
     try {
-        const template = await Template.findByPk(req.params.id, {
-            include: [{ model: Question }, { model: Tag }],
+        const { id } = req.params;
+
+        const template = await Template.findOne({
+            where: { id },
+            include: [
+                {
+                    model: Question,
+                    attributes: ['id', 'text', 'type', 'isRequired', 'options'],
+                },
+                {
+                    model: User,
+                    attributes: ['id', 'firstName', 'lastName'],
+                    as: 'author',
+                },
+            ],
         });
-        if (!template)
+
+        if (!template) {
             return res.status(404).json({ message: 'Template not found' });
+        }
+
         res.json(template);
     } catch (error) {
-        console.error(error);
+        console.error('Error fetching template:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });
@@ -234,6 +260,99 @@ router.get('/:id/likes', async (req, res) => {
         res.json({ likesCount });
     } catch (error) {
         console.error('Error fetching likes count:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+router.post('/:templateId/questions', auth, async (req, res) => {
+    try {
+        const { templateId } = req.params;
+        const { text, type, isRequired, options } = req.body;
+
+        const template = await Template.findOne({
+            where: { id: templateId, authorId: req.user.id },
+        });
+
+        if (!template) {
+            return res.status(403).json({ message: 'Unauthorized' });
+        }
+
+        const question = await Question.create({
+            templateId,
+            text,
+            type,
+            isRequired,
+            options,
+        });
+
+        res.status(201).json(question);
+    } catch (error) {
+        console.error('Error adding question:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+router.put('/:templateId/questions/:questionId', auth, async (req, res) => {
+    try {
+        const { templateId, questionId } = req.params;
+        const { text, type, isRequired, options } = req.body;
+
+        const template = await Template.findOne({
+            where: { id: templateId, authorId: req.user.id },
+        });
+
+        if (!template) {
+            return res.status(403).json({ message: 'Unauthorized' });
+        }
+
+        const question = await Question.findOne({
+            where: { id: questionId, templateId },
+        });
+
+        if (!question) {
+            return res.status(404).json({ message: 'Question not found' });
+        }
+
+        question.text = text || question.text;
+        question.type = type || question.type;
+        question.isRequired =
+            isRequired !== undefined ? isRequired : question.isRequired;
+        question.options = options || question.options;
+
+        await question.save();
+
+        res.json(question);
+    } catch (error) {
+        console.error('Error updating question:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+router.delete('/:templateId/questions/:questionId', auth, async (req, res) => {
+    try {
+        const { templateId, questionId } = req.params;
+
+        const template = await Template.findOne({
+            where: { id: templateId, authorId: req.user.id },
+        });
+
+        if (!template) {
+            return res.status(403).json({ message: 'Unauthorized' });
+        }
+
+        const question = await Question.findOne({
+            where: { id: questionId, templateId },
+        });
+
+        if (!question) {
+            return res.status(404).json({ message: 'Question not found' });
+        }
+
+        await question.destroy();
+
+        res.json({ message: 'Question deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting question:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });

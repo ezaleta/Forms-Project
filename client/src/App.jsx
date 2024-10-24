@@ -11,6 +11,8 @@ import TemplatePage from './pages/TemplatePage';
 import PrivateRoute from './components/PrivateRoute';
 import Sidebar from './components/Sidebar';
 import ProfilePage from './pages/ProfilePage';
+import EditTemplatePage from './pages/EditTemplatePage';
+import FormDetailPage from './pages/FormDetailPage';
 
 function App() {
     return (
@@ -19,6 +21,8 @@ function App() {
             <Box flex="1" ml={{ base: 0, md: '250px' }} p={4}>
                 <Routes>
                     <Route path="/" element={<HomePage />} />
+                    <Route path="/register" element={<RegisterPage />} />
+                    <Route path="/login" element={<LoginPage />} />
                     <Route
                         path="/dashboard"
                         element={
@@ -43,9 +47,12 @@ function App() {
                             </PrivateRoute>
                         }
                     />
+                    <Route
+                        path="/templates/edit/:id"
+                        element={<EditTemplatePage />}
+                    />
                     <Route path="/templates/:id" element={<TemplatePage />} />
-                    <Route path="/register" element={<RegisterPage />} />
-                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/forms/:id" element={<FormDetailPage />} />
                     <Route
                         path="/profile"
                         element={
@@ -54,6 +61,8 @@ function App() {
                             </PrivateRoute>
                         }
                     />
+                    {/* To implement later */}
+                    {/* <Route path="*" element={<NotFoundPage />} /> */}
                 </Routes>
             </Box>
         </Box>

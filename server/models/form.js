@@ -5,7 +5,10 @@ module.exports = (sequelize, DataTypes) => {
         static associate(models) {
             Form.belongsTo(models.User, { foreignKey: 'userId' });
             Form.belongsTo(models.Template, { foreignKey: 'templateId' });
-            Form.hasMany(models.Answer, { foreignKey: 'formId' });
+            Form.hasMany(models.FormAnswer, {
+                foreignKey: 'formId',
+                onDelete: 'CASCADE',
+            });
         }
     }
     Form.init(
