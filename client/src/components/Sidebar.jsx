@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import {
     Box,
     VStack,
-    Link,
+    Link as ChakraLink,
     Button,
+    Text,
     IconButton,
     useColorMode,
     useColorModeValue,
@@ -14,12 +15,28 @@ import {
     Heading,
 } from '@chakra-ui/react';
 import { HamburgerIcon } from '@chakra-ui/icons';
+import { jwtDecode } from 'jwt-decode';
 
 function Sidebar() {
     const { colorMode, toggleColorMode } = useColorMode();
     const isAuthenticated = !!localStorage.getItem('token');
     const navigate = useNavigate();
     const { isOpen, onOpen, onClose } = useDisclosure();
+    const [isAdmin, setIsAdmin] = useState(false);
+    const token = localStorage.getItem('token');
+    let decoded = null;
+
+    if (token) {
+        decoded = jwtDecode(token);
+    }
+
+    useEffect(() => {
+        if (decoded && decoded.isAdmin) {
+            setIsAdmin(true);
+        } else {
+            setIsAdmin(false);
+        }
+    }, [decoded]);
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -75,7 +92,7 @@ function Sidebar() {
                             </Heading>
                         </Box>
                         <VStack align="stretch" spacing={4} mt={4}>
-                            <Link
+                            <ChakraLink
                                 as={RouterLink}
                                 to="/"
                                 color={useColorModeValue(
@@ -84,10 +101,10 @@ function Sidebar() {
                                 )}
                             >
                                 Home
-                            </Link>
+                            </ChakraLink>
                             {isAuthenticated && (
                                 <>
-                                    <Link
+                                    <ChakraLink
                                         as={RouterLink}
                                         to="/dashboard"
                                         color={useColorModeValue(
@@ -96,8 +113,8 @@ function Sidebar() {
                                         )}
                                     >
                                         Dashboard
-                                    </Link>
-                                    <Link
+                                    </ChakraLink>
+                                    <ChakraLink
                                         as={RouterLink}
                                         to="/templates/create"
                                         color={useColorModeValue(
@@ -106,7 +123,31 @@ function Sidebar() {
                                         )}
                                     >
                                         Create Template
-                                    </Link>
+                                    </ChakraLink>
+                                </>
+                            )}
+                            {isAdmin && (
+                                <>
+                                    <ChakraLink
+                                        as={RouterLink}
+                                        to="/admin/users"
+                                        color={useColorModeValue(
+                                            'teal.700',
+                                            'teal.300'
+                                        )}
+                                    >
+                                        Manage Users
+                                    </ChakraLink>
+                                    <ChakraLink
+                                        as={RouterLink}
+                                        to="/admin/templates"
+                                        color={useColorModeValue(
+                                            'teal.700',
+                                            'teal.300'
+                                        )}
+                                    >
+                                        Manage Templates
+                                    </ChakraLink>
                                 </>
                             )}
                         </VStack>
@@ -136,6 +177,7 @@ function Sidebar() {
                                     >
                                         Login
                                     </Button>
+                                    <Text> - or - </Text>
                                     <Button
                                         as={RouterLink}
                                         to="/register"

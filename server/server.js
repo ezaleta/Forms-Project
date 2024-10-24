@@ -10,6 +10,8 @@ const templateRoutes = require('./src/routes/templates');
 const questionRoutes = require('./src/routes/questions');
 const formRoutes = require('./src/routes/forms');
 const userRoutes = require('./src/routes/users');
+const adminRouter = require('./src/routes/admin');
+
 require('dotenv').config();
 
 const PORT = process.env.PORT || 5000;
@@ -42,6 +44,7 @@ app.use('/api/templates', templateRoutes);
 app.use('/api/questions', questionRoutes);
 app.use('/api/forms', formRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/admin', adminRouter);
 
 app.get('/', async (req, res) => {
     try {

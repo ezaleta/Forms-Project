@@ -134,7 +134,9 @@ router.get('/:id/hasLiked', auth, async (req, res) => {
 
 router.put('/:id', auth, async (req, res) => {
     try {
-        const template = await Template.findByPk(req.params.id);
+        const template = await Template.findByPk(req.params.id, {
+            include: [{ model: Question }],
+        });
         if (!template)
             return res.status(404).json({ message: 'Template not found' });
 
@@ -142,7 +144,9 @@ router.put('/:id', auth, async (req, res) => {
             return res.status(403).json({ message: 'Unauthorized' });
         }
 
-        const { title, description, topic, isPublic, tags } = req.body;
+        const { title, description, topic, isPublic, tags, questions } =
+            req.body;
+
         await template.update({ title, description, topic, isPublic });
 
         if (tags) {
@@ -157,9 +161,50 @@ router.put('/:id', auth, async (req, res) => {
             await template.setTags(tagRecords);
         }
 
-        res.json(template);
+        if (questions && Array.isArray(questions)) {
+            const existingQuestionIds = template.Questions.map(q => q.id);
+            const updatedQuestionIds = questions
+                .filter(q => q.id)
+                .map(q => q.id);
+
+            const questionsToDelete = existingQuestionIds.filter(
+                id => !updatedQuestionIds.includes(id)
+            );
+
+            if (questionsToDelete.length > 0) {
+                await Question.destroy({ where: { id: questionsToDelete } });
+            }
+
+            for (const questionData of questions) {
+                if (questionData.id) {
+                    await Question.update(
+                        {
+                            text: questionData.text,
+                            type: questionData.type,
+                            isRequired: questionData.isRequired,
+                            options: questionData.options,
+                        },
+                        { where: { id: questionData.id } }
+                    );
+                } else {
+                    await Question.create({
+                        text: questionData.text,
+                        type: questionData.type,
+                        isRequired: questionData.isRequired,
+                        options: questionData.options,
+                        templateId: template.id,
+                    });
+                }
+            }
+        }
+
+        const updatedTemplate = await Template.findByPk(req.params.id, {
+            include: [{ model: Question }],
+        });
+
+        res.json(updatedTemplate);
     } catch (error) {
-        console.error('Error creating template:', error);
+        console.error('Error updating template:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });

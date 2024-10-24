@@ -9,6 +9,8 @@ import {
     AlertIcon,
     Stack,
     Link,
+    VStack,
+    Link as ChakraLink,
     useToast,
 } from '@chakra-ui/react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
@@ -43,6 +45,13 @@ function DashboardPage() {
             } catch (error) {
                 console.error('Error fetching forms:', error);
                 setFormsError('Failed to load forms');
+                toast({
+                    title: 'Error fetching forms.',
+                    description: 'Unable to load your form submissions.',
+                    status: 'error',
+                    duration: 5000,
+                    isClosable: true,
+                });
             } finally {
                 setLoadingForms(false);
             }
@@ -50,12 +59,11 @@ function DashboardPage() {
 
         fetchTemplates();
         fetchForms();
-    }, []);
+    }, [toast]);
 
     const deleteTemplate = async templateId => {
         try {
             await api.delete(`/api/templates/${templateId}`);
-            // Update the state to remove the deleted template
             setTemplates(
                 templates.filter(template => template.id !== templateId)
             );
@@ -156,6 +164,29 @@ function DashboardPage() {
                     .
                 </Text>
             )}
+            <Heading size="md" mt={4} mb={2}>
+                My Form Submissions
+            </Heading>
+            <VStack spacing={4} align="stretch">
+                {forms.map(form => (
+                    <Box
+                        key={form.id}
+                        p={3}
+                        borderWidth="1px"
+                        borderRadius="md"
+                    >
+                        <Text>
+                            <ChakraLink as={Link} to={`/forms/${form.id}`}>
+                                {form.Template.title}
+                            </ChakraLink>
+                        </Text>
+                        <Text fontSize="sm" color="gray.500">
+                            Submitted on{' '}
+                            {new Date(form.createdAt).toLocaleString()}
+                        </Text>
+                    </Box>
+                ))}
+            </VStack>
         </Box>
     );
 }

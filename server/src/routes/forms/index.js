@@ -118,6 +118,10 @@ router.get('/:id', auth, async (req, res) => {
             return res.status(404).json({ message: 'Form not found' });
         }
 
+        if (form.userId !== req.user.id && !req.user.isAdmin) {
+            return res.status(403).json({ message: 'Access denied' });
+        }
+
         res.json(form);
     } catch (error) {
         console.error('Error fetching form:', error);

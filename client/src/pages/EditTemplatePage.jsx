@@ -22,12 +22,12 @@ import api from '../services/api';
 
 function EditTemplatePage() {
     const { id } = useParams();
+    const [loading, setLoading] = useState(true);
     const [template, setTemplate] = useState({
         title: '',
         description: '',
     });
     const [questions, setQuestions] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [newQuestion, setNewQuestion] = useState({
         text: '',
         type: 'text',
@@ -85,7 +85,7 @@ function EditTemplatePage() {
     };
 
     const handleAddQuestion = () => {
-        setQuestions([...questions, newQuestion]);
+        setQuestions([...questions, { ...newQuestion }]);
         setNewQuestion({
             text: '',
             type: 'text',

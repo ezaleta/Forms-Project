@@ -13,6 +13,8 @@ import Sidebar from './components/Sidebar';
 import ProfilePage from './pages/ProfilePage';
 import EditTemplatePage from './pages/EditTemplatePage';
 import FormDetailPage from './pages/FormDetailPage';
+import AdminTemplatesPage from './pages/AdminTemplatesPage';
+import AdminUsersPage from './pages/AdminUsersPage';
 
 function App() {
     return (
@@ -61,8 +63,22 @@ function App() {
                             </PrivateRoute>
                         }
                     />
-                    {/* To implement later */}
-                    {/* <Route path="*" element={<NotFoundPage />} /> */}
+                    <Route
+                        path="/admin/users"
+                        element={
+                            <PrivateRoute adminRequired={true}>
+                                <AdminUsersPage />
+                            </PrivateRoute>
+                        }
+                    />
+                    <Route
+                        path="/admin/templates"
+                        element={
+                            <PrivateRoute adminRequired={true}>
+                                <AdminTemplatesPage />
+                            </PrivateRoute>
+                        }
+                    />
                 </Routes>
             </Box>
         </Box>
