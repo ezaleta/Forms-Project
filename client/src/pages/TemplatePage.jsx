@@ -17,7 +17,7 @@ import {
     IconButton,
     useToast,
 } from '@chakra-ui/react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { EditIcon, DeleteIcon } from '@chakra-ui/icons';
 import api from '../services/api';
 
@@ -34,6 +34,7 @@ function TemplatePage() {
     const [editingCommentId, setEditingCommentId] = useState(null);
     const [editingCommentContent, setEditingCommentContent] = useState('');
     const toast = useToast();
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchTemplateData = async () => {
@@ -68,6 +69,23 @@ function TemplatePage() {
             }
         };
 
+        const fetchTemplate = async () => {
+            try {
+                const res = await api.get(`/api/templates/${id}`);
+                setTemplate(res.data);
+            } catch (error) {
+                console.error('Error fetching template:', error);
+                toast({
+                    title: 'Error loading template.',
+                    description: 'Unable to load template data.',
+                    status: 'error',
+                    duration: 5000,
+                    isClosable: true,
+                });
+            }
+        };
+
+        fetchTemplate();
         fetchTemplateData();
     }, [id]);
 
@@ -295,10 +313,17 @@ function TemplatePage() {
                 </FormControl>
                 <Button
                     onClick={handleAddComment}
-                    colorScheme="blue"
+                    colorScheme="teal"
                     alignSelf="flex-end"
                 >
                     Submit Comment
+                </Button>
+                <Button
+                    colorScheme="teal"
+                    alignSelf="flex-end"
+                    onClick={() => navigate(`/templates/${id}/fill`)}
+                >
+                    Fill Out Form
                 </Button>
             </VStack>
         </Box>

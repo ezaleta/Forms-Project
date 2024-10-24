@@ -83,6 +83,25 @@ router.get('/', auth, async (req, res) => {
     }
 });
 
+router.get('/public', async (req, res) => {
+    try {
+        const templates = await Template.findAll({
+            where: { isPublic: true },
+            include: [
+                {
+                    model: User,
+                    attributes: ['firstName', 'lastName'],
+                    as: 'author',
+                },
+            ],
+        });
+        res.json(templates);
+    } catch (error) {
+        console.error('Error fetching public templates:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
 router.get('/:id', auth, async (req, res) => {
     try {
         const { id } = req.params;

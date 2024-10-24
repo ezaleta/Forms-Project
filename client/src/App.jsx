@@ -42,6 +42,14 @@ function App() {
                         }
                     />
                     <Route
+                        path="/templates/:id"
+                        element={
+                            <PrivateRoute>
+                                <TemplatePage />
+                            </PrivateRoute>
+                        }
+                    />
+                    <Route
                         path="/templates/:id/fill"
                         element={
                             <PrivateRoute>
@@ -51,9 +59,12 @@ function App() {
                     />
                     <Route
                         path="/templates/edit/:id"
-                        element={<EditTemplatePage />}
+                        element={
+                            <PrivateRoute>
+                                <EditTemplatePage />
+                            </PrivateRoute>
+                        }
                     />
-                    <Route path="/templates/:id" element={<TemplatePage />} />
                     <Route path="/forms/:id" element={<FormDetailPage />} />
                     <Route
                         path="/profile"

@@ -176,7 +176,10 @@ function DashboardPage() {
                         borderRadius="md"
                     >
                         <Text>
-                            <ChakraLink as={Link} to={`/forms/${form.id}`}>
+                            <ChakraLink
+                                as={RouterLink}
+                                to={`/forms/${form.id}`}
+                            >
                                 {form.Template.title}
                             </ChakraLink>
                         </Text>

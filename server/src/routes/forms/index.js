@@ -18,7 +18,10 @@ router.post('/', auth, async (req, res) => {
             const answer = answers.find(
                 ans => parseInt(ans.questionId) === question.id
             );
-            if (question.isRequired && (!answer || !answer.answer.trim())) {
+            if (
+                question.isRequired &&
+                (!answer || !answer.answer || !answer.answer.trim())
+            ) {
                 return res.status(400).json({
                     message: `Answer is required for question: "${question.text}"`,
                 });
@@ -96,7 +99,7 @@ router.get('/myForms', auth, async (req, res) => {
 router.get('/:id', auth, async (req, res) => {
     try {
         const form = await Form.findOne({
-            where: { id: req.params.id, userId: req.user.id },
+            where: { id: req.params.id },
             include: [
                 {
                     model: FormAnswer,
@@ -125,37 +128,6 @@ router.get('/:id', auth, async (req, res) => {
         res.json(form);
     } catch (error) {
         console.error('Error fetching form:', error);
-        res.status(500).json({ message: 'Server error' });
-    }
-});
-
-router.post('/:templateId', auth, async (req, res) => {
-    try {
-        const { templateId } = req.params;
-        const { answers } = req.body;
-
-        const template = await Template.findByPk(templateId, {
-            include: [{ model: Question }],
-        });
-        if (!template)
-            return res.status(404).json({ message: 'Template not found' });
-
-        const form = await Form.create({
-            userId: req.user.id,
-            templateId,
-        });
-
-        for (const answerData of answers) {
-            await FormAnswer.create({
-                formId: form.id,
-                questionId: answerData.questionId,
-                value: answerData.value,
-            });
-        }
-
-        res.status(201).json({ message: 'Form submitted successfully' });
-    } catch (error) {
-        console.error(error);
         res.status(500).json({ message: 'Server error' });
     }
 });
